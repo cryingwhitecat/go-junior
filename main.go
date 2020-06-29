@@ -1,13 +1,9 @@
 package main
 import(
-    "fmt"
     "log"
-    "context"
-    //"go.mongodb.org/mongo-driver/mongo/readpref"
-    //"time"
-    //"bufio"
     "go-junior/crud"
     "go-junior/parsejson"
+    "fmt"
 )
 
 func main() {
@@ -19,11 +15,8 @@ func main() {
         log.Fatal(err)
     }
 
-    users1 := make([]interface{}, len(users.Objects))
-    for i := 0; i < len(users.Objects); i++ {
-        users1[i]=users.Objects[i]
+    err = crud.AddUsers(users.Objects,collection)
+    if err != nil{
+        log.Fatal(err)
     }
-
-    _,err = collection.InsertMany(context.TODO(), users1)
-
 }

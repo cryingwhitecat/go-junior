@@ -42,6 +42,15 @@ func Connect(dbUrl string, dbName string, collectionName string, constraintName 
     }
     return collection, nil
 }
+func AddUsers(users []models.User, coll *mongo.Collection) error{
+    genericUsers := make([]interface{}, len(users))
+    for i := 0; i < len(users); i++ {
+        genericUsers[i]=users[i]
+    }
+    _,err := coll.InsertMany(context.TODO(), genericUsers)
+    return err
+
+}
 func SearchByEmail(email string, coll *mongo.Collection) (*models.User, error){
 
     options := options.FindOne()
@@ -67,16 +76,12 @@ func UpdateUser(stringId string, user *models.User, coll *mongo.Collection) erro
     return err
 }
 
-func InsertUser(user models.User, coll *mongo.Collection) {
+func InsertUser(user models.User, coll *mongo.Collection) error {
     insertResult, err := coll.InsertOne(context.TODO(), user)
-    if err != nil {
-        log.Fatal(err)
-    }
-
     fmt.Println("Inserted a single document: ", insertResult.InsertedID)
-    return
+    return err
 }
-func GetUsers(coll *mongo.Collection, pageSize int ,pageNum int) []*models.User{
+func GetUsers(coll *mongo.Collection, pageSize int ,pageNum int) ([]*models.User,error){
     limit :=  int64(pageSize)
     skip := int64(pageSize * (pageNum ))
     findOptions := options.Find()
@@ -84,7 +89,7 @@ func GetUsers(coll *mongo.Collection, pageSize int ,pageNum int) []*models.User{
     findOptions.SetSkip(skip)
     cur, err := coll.Find(context.TODO(), bson.D{{}}, findOptions)
     if err != nil{
-        log.Fatal(err)
+        return nil,err
     }
     var results[] *models.User
     for cur.Next(context.TODO()) {
@@ -92,16 +97,16 @@ func GetUsers(coll *mongo.Collection, pageSize int ,pageNum int) []*models.User{
         var elem models.User
         err := cur.Decode(&elem)
         if err != nil {
-            log.Fatal(err)
+            return nil, err
         }
 
         results = append(results, &elem)
     }
 
         if err := cur.Err(); err != nil {
-            log.Fatal(err)
+            return nil, err
         }
         // Close the cursor once finished
         cur.Close(context.TODO())
-        return results
+        return results, nil
 }
