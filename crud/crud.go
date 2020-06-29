@@ -3,7 +3,6 @@ package crud
 import(
 
     "fmt"
-    "log"
     "context"
     "go.mongodb.org/mongo-driver/bson"
     "go.mongodb.org/mongo-driver/mongo"
@@ -76,9 +75,8 @@ func UpdateUser(stringId string, user *models.User, coll *mongo.Collection) erro
     return err
 }
 
-func InsertUser(user models.User, coll *mongo.Collection) error {
-    insertResult, err := coll.InsertOne(context.TODO(), user)
-    fmt.Println("Inserted a single document: ", insertResult.InsertedID)
+func InsertUser(user *models.User, coll *mongo.Collection) error {
+    _, err := coll.InsertOne(context.TODO(), user)
     return err
 }
 func GetUsers(coll *mongo.Collection, pageSize int ,pageNum int) ([]*models.User,error){

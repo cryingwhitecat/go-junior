@@ -3,7 +3,6 @@ import(
     "log"
     "go-junior/crud"
     "go-junior/parsejson"
-    "fmt"
 )
 
 func main() {
