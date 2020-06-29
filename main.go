@@ -23,13 +23,7 @@ func main() {
     for i := 0; i < len(users.Objects); i++ {
         users1[i]=users.Objects[i]
     }
-    
+
     _,err = collection.InsertMany(context.TODO(), users1)
-    for i:=0; i < 5; i++ {
-        rslts := crud.GetUsers(collection, 5, i)
-        fmt.Printf("----------------------Page # %d----------------------\n",(i+1)) 
-        for i := range rslts{
-            fmt.Println(rslts[i].LastName)
-        }
-    }
+
 }

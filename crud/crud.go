@@ -10,6 +10,7 @@ import(
     "go.mongodb.org/mongo-driver/mongo/options"
     "go.mongodb.org/mongo-driver/x/bsonx"
     "go-junior/models"
+    "go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func Connect(dbUrl string, dbName string, collectionName string, constraintName string) (*mongo.Collection, error){
@@ -41,28 +42,29 @@ func Connect(dbUrl string, dbName string, collectionName string, constraintName 
     }
     return collection, nil
 }
-func SearchByEmail(email string, coll *mongo.Collection) *models.User{
+func SearchByEmail(email string, coll *mongo.Collection) (*models.User, error){
 
-    options := options.Find()
-    options.SetLimit(2)
+    options := options.FindOne()
     filter := bson.D{{"email",email}}
     var user models.User
 
-    cur, err := coll.Find(context.TODO(), filter, options)
+    err := coll.FindOne(context.TODO(), filter, options).Decode(&user)
     if err != nil {
-        fmt.Print("error while searching: ")
-        log.Fatal(err)
+        return nil, err
     }
-    if !cur.Next(context.TODO()){
-        fmt.Println("No records found :(")
-    }else{
-        cur.Next(context.TODO())
-
-        if err := cur.Decode(&user); err != nil{
-            log.Fatal(err)
-        }
-    }
-    return &user
+    return &user,nil
+}
+func UpdateUser(stringId string, user *models.User, coll *mongo.Collection) error{
+    id, _ := primitive.ObjectIDFromHex(stringId)
+    _, err := coll.UpdateOne(
+        context.TODO(),
+        bson.M{"_id": id},
+        bson.D{
+            {"$set", bson.D{{"email",user.Email},{"lastname",user.LastName},
+                {"birth_date",user.BirthDate},{"country",user.Country},{"gender",user.Gender}}},
+        },
+    )
+    return err
 }
 
 func InsertUser(user models.User, coll *mongo.Collection) {
@@ -94,13 +96,12 @@ func GetUsers(coll *mongo.Collection, pageSize int ,pageNum int) []*models.User{
         }
 
         results = append(results, &elem)
-        }
+    }
 
         if err := cur.Err(); err != nil {
             log.Fatal(err)
         }
-
         // Close the cursor once finished
         cur.Close(context.TODO())
         return results
-    }
+}
